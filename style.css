@@ -1,0 +1,126 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+.col {
+    width: 100%;
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 20px;
+    text-align: center;
+    background-color: #fff;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+.media {
+    margin-bottom: 20px;
+}
+
+.poster {
+    width: 100%;
+    max-width: 100px;
+    height: auto;
+    border-radius: 5px;
+}
+
+.title {
+    font-size: 22px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.description {
+    font-size: 16px;
+    color: #666;
+    margin: 5px 0;
+}
+
+.genres {
+    margin-top: 10px;
+}
+
+.genre {
+    display: inline-block;
+    background-color: #e0e0e0;
+    padding: 5px 10px;
+    border-radius: 20px;
+    margin: 5px;
+}
+
+.rating {
+    margin-top: 10px;
+}
+
+.rating i {
+    color: #f8b400;
+}
+
+.settings {
+    margin-top: 20px;
+    font-size: 18px;
+}
+
+.settings i {
+    margin: 10px;
+    cursor: pointer;
+}
+
+.timeline {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#range {
+    width: 100%;
+}
+
+.rangeslider {
+    position: relative;
+    width: 100%;
+}
+
+.rangeslider__fill {
+    height: 5px;
+    background-color: #4caf50;
+    border-radius: 2px;
+}
+
+.rangeslider__handle {
+    position: absolute;
+    top: -6px;
+    width: 20px;
+    height: 20px;
+    background-color: #4caf50;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.controls {
+    margin-top: 20px;
+}
+
+.controls i {
+    margin: 0 15px;
+    font-size: 28px;
+    cursor: pointer;
+}
+
+#state {
+    font-size: 14px;
+    margin-top: 20px;
+    color: #888;
+}
+
+.clear {
+    clear: both;
+}
+.title, .description, .release-date {
+    margin-bottom: 15px; 
+}
