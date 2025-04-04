@@ -5,26 +5,64 @@ function getUrlParameter(name) {
     return urlParams.get(name);
 }
 
-const showId = getUrlParameter("show");
-console.log(showId);
-
 const mediaData = {
-    mediaUrl: showId,
-    title: "Titel",
-    description: "Her kommer beskrivelsen til at stå",
-    releaseDate: "2006-01-19T17:00:00Z",
-    posterUrl: "" 
+    mediaUrl: "",
+    title: "",
+    description: "",
+    releaseDate: "",
+    posterUrl: ""
 };
 
-function updateMetadata() {
+async function fetchKalturaData(entryId) {
+    const requestBody = {
+        "1": { "service": "session", "action": "startWidgetSession", "widgetId": "_397" },
+        "2": { "service": "baseEntry", "action": "list", "ks": "{1:result:ks}", "filter": { "redirectFromEntryId": entryId }, "responseProfile": { "type": 1, "fields": "id,referenceId,name,description,thumbnailUrl,dataUrl,duration,msDuration,flavorParamsIds,mediaType,type,tags,dvrStatus,externalSourceType,status" } },
+        "3": { "service": "baseEntry", "action": "getPlaybackContext", "entryId": "{2:result:objects:0:id}", "ks": "{1:result:ks}", "contextDataParams": { "objectType": "KalturaContextDataParams", "flavorTags": "all" } },
+        "4": { "service": "metadata_metadata", "action": "list", "filter": { "objectType": "KalturaMetadataFilter", "objectIdEqual": "{2:result:objects:0:id}", "metadataObjectTypeEqual": "1" }, "ks": "{1:result:ks}" },
+        "apiVersion": "3.3.0",
+        "format": 1,
+        "ks": "",
+        "clientTag": "html5:v3.14.4",
+        "partnerId": 397
+    };
+
+    try {
+        const response = await fetch("https://api.kaltura.nordu.net/api_v3/service/multirequest", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "*/*"
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+         const data = await response.json();
+
+        if (data[1] && data[1].objects && data[1].objects.length > 0) {
+            const mediaInfo = data[1].objects[0];
+            mediaData.title = mediaInfo.name;
+            mediaData.description = mediaInfo.description;
+            mediaData.mediaUrl = `https://vod-cache.kaltura.nordu.net/p/397/sp/39700/serveFlavor/entryId/${getUrlParameter("entryId")}/v/12/flavorId/${getUrlParameter("flavorId")}/name/a.${getUrlParameter("ext")}`; 
+            updateMetadata();
+          
+          console.log("mediaData: " + mediaData);
+        }
+    } catch (error) {
+        console.error("Error fetching Kaltura data:", error);
+    }
+}
+
+
+function updateMetadata() {  
     document.getElementById('title').innerText = mediaData.title || '';
     document.getElementById('description').innerText = mediaData.description || '';
     document.getElementById('releaseDate').innerText = mediaData.releaseDate ? `${new Date(mediaData.releaseDate).toLocaleDateString()}` : '';
     const posterElement = document.getElementById('poster');
     if (mediaData.posterUrl) {
         posterElement.src = mediaData.posterUrl;
+        posterElement.style.display = 'block';
     } else {
-        posterElement.style.display = 'none'; 
+        posterElement.style.display = 'none';
     }
 }
 
@@ -51,7 +89,7 @@ function initializeCast() {
 
         const progress = cjs.progress;
         document.getElementById('range').value = progress;
-        document.getElementById('rangeslider').style.width = `${progress}%`; 
+        document.getElementById('rangeslider').style.width = `${progress}%`;
     });
 
     cjs.on('playing', () => {
@@ -89,7 +127,7 @@ document.getElementById('cast').addEventListener('click', () => {
 
 document.getElementById('play').addEventListener('click', () => {
     if (cjs.paused) {
-        cjs.play();
+        cjs.play(); 
     } else {
         cjs.pause();
     }
@@ -97,7 +135,7 @@ document.getElementById('play').addEventListener('click', () => {
 
 document.getElementById('back').addEventListener('click', () => {
     const currentTime = cjs.time - 10;
-    cjs.seek(currentTime > 0 ? currentTime : 0);
+    cjs.seek(currentTime > 0 ? currentTime : 0); 
 });
 
 document.getElementById('forward').addEventListener('click', () => {
@@ -111,7 +149,7 @@ document.getElementById('mute').addEventListener('click', () => {
         cjs.unmute(); 
         document.getElementById('mute').classList.replace('fa-volume-mute', 'fa-volume-up');
     } else {
-        cjs.mute(); 
+        cjs.mute(); // M
         document.getElementById('mute').classList.replace('fa-volume-up', 'fa-volume-mute');
     }
 });
@@ -130,6 +168,3 @@ document.getElementById('range').addEventListener('input', () => {
 
 updateMetadata();
 initializeCast();
-
-
-
