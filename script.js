@@ -42,16 +42,18 @@ async function fetchKalturaData(entryId) {
             const mediaInfo = data[1].objects[0];
             mediaData.title = mediaInfo.name;
             mediaData.description = mediaInfo.description;
-            mediaData.mediaUrl = `https://vod-cache.kaltura.nordu.net/p/397/sp/39700/serveFlavor/entryId/${getUrlParameter("entryId")}/v/12/flavorId/${getUrlParameter("flavorId")}/name/a.${getUrlParameter("ext")}`; 
             updateMetadata();
           
-          console.log("mediaData: " + mediaData);
+          console.log(mediaData);
         }
     } catch (error) {
         console.error("Error fetching Kaltura data:", error);
     }
 }
 
+function generateKalturaLink(entryId, flavorId, ext) {
+      return `https://vod-cache.kaltura.nordu.net/p/397/sp/39700/serveFlavor/entryId/${entryId}/v/12/flavorId/${flavorId}/name/a.${ext}`;  
+}
 
 function updateMetadata() {  
     document.getElementById('title').innerText = mediaData.title || '';
@@ -166,5 +168,9 @@ document.getElementById('range').addEventListener('input', () => {
     cjs.seek(seekTime);
 });
 
-updateMetadata();
-initializeCast();
+
+document.addEventListener("DOMContentLoaded", () => {
+  mediaData.mediaUrl = generateKalturaLink(getUrlParameter("entryId"), getUrlParameter("flavorId"), getUrlParameter("ext"));
+  updateMetadata();
+  initializeCast();
+});
