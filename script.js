@@ -151,7 +151,7 @@ document.getElementById('mute').addEventListener('click', () => {
         cjs.unmute(); 
         document.getElementById('mute').classList.replace('fa-volume-mute', 'fa-volume-up');
     } else {
-        cjs.mute(); // M
+        cjs.mute(); 
         document.getElementById('mute').classList.replace('fa-volume-up', 'fa-volume-mute');
     }
 });
@@ -170,7 +170,14 @@ document.getElementById('range').addEventListener('input', () => {
 
 
 document.addEventListener("DOMContentLoaded", () => {
-  mediaData.mediaUrl = generateKalturaLink(getUrlParameter("entryId"), getUrlParameter("flavorId"), getUrlParameter("ext"));
+  let entryId = getUrlParameter("entryId");
+  let flavorId = getUrlParameter("flavorId");
+  let fileExt = getUrlParameter("ext");
+  
+  mediaData.mediaUrl = generateKalturaLink("0_demggd16", "0_any47ujs", "mp4");
+  fetchKalturaData(entryId);
+  mediaData.mediaUrl = generateKalturaLink(entryId, flavorId, fileExt);
+  console.log(mediaData);
   updateMetadata();
   initializeCast();
 });
