@@ -29,7 +29,7 @@ async function fetchKalturaData(entryId) {
       },
       "responseProfile": {
         "type": 1,
-        "fields": "id,referenceId,name,duration,description,thumbnailUrl,dataUrl,duration,msDuration,flavorParamsIds,mediaType,type,tags,dvrStatus,externalSourceType,status"
+        "fields": "id,referenceId,name,duration,description,thumbnailUrl,dataUrl,duration,msDuration,flavorParamsIds,mediaType,type,tags,startTime,date,dvrStatus,externalSourceType,status"
       }
     },
     "apiVersion": "3.3.0",
@@ -232,10 +232,10 @@ document.getElementById('range').addEventListener('input', () => {
   cjs.seek(seekTime);
 });
 
-// Initialisering 
+// Initialisering  https://vod-cache.kaltura.nordu.net/p/397/sp/39700/serveFlavor/entryId/0_x3yhkcpe/v/12/flavorId/0_picuy3wm/name/a.mp4
 document.addEventListener("DOMContentLoaded", () => {
   let entryId = getUrlParameter("entryId");
-  let flavorId = "getUrlParameter("flavorId");"
+  let flavorId = getUrlParameter("flavorId");
   let fileExt = getUrlParameter("ext");
   
   fetchKalturaData(entryId);
