@@ -21,11 +21,14 @@ body {
     margin-bottom: 20px;
 }
 
-.poster {
-    width: 100%;
-    max-width: 100px;
-    height: auto;
-    border-radius: 5px;
+#poster {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  object-position: center;
+  margin: 0 auto;
+  margin-bottom: 20px;
 }
 
 .title {
@@ -116,11 +119,4 @@ body {
     font-size: 14px;
     margin-top: 20px;
     color: #888;
-}
-
-.clear {
-    clear: both;
-}
-.title, .description, .release-date {
-    margin-bottom: 15px; 
 }
