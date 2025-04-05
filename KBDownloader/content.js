@@ -108,8 +108,6 @@ function generateKalturaLink(entryId, programName, description, startTime) {
 }
 
 function addUIButtons(streamLink, programName, description, startTime) {
-	console.log("Tilføjer UI-knapper...");
-
 	const observer = new MutationObserver(() => {
 		const metadataContainer = document.querySelector('.boardcast-record-data');
 
@@ -122,57 +120,93 @@ function addUIButtons(streamLink, programName, description, startTime) {
 		buttonWrapper.id = "custom-button-wrapper";
 		buttonWrapper.style.cssText = "display: flex; gap: 15px; justify-content: flex-end; margin-bottom: 10px; padding-top: 10px; width: 100%;";
 
-		function createIconButton(imgSrc, title, onClick) {
-			const button = document.createElement('button');
-			button.style.cssText = "background: transparent; border: none; padding: 0; cursor: pointer;";
+function createIconButton(imgSrc, title, onClick) {
+	const button = document.createElement('button');
+	button.style.cssText = "background: transparent; border: none; padding: 0; cursor: pointer;";
 
-			const img = document.createElement('img');
-			img.src = imgSrc;
-			img.alt = title;
-			img.style.cssText = "width: 40px; height: 40px;";
+	const img = document.createElement('img');
+	img.src = imgSrc;
+	img.alt = title;
+	img.style.cssText = "width: 40px; height: 40px;";
+	img.classList.add("icon-img");
 
-			button.title = title;
-			button.appendChild(img);
-			button.onclick = onClick;
+	button.title = title;
+	button.appendChild(img);
+	button.onclick = () => onClick(button, img);
 
-			return button;
-		}
+	return button;
+}
 
-		const playTabButton = createIconButton(
-			"https://seekicon.com/free-icon-download/new-tab_2.svg",
-			"Afspil i nyt vindue",
-			() => window.open(streamLink, '_blank')
-		);
-
+const style = document.createElement('style');
+style.textContent = `
+@keyframes pulseGreen {
+  0% { filter: drop-shadow(0 0 0px rgba(255, 255, 255, 0.5)); transform: scale(1); }
+  50% { filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8)); transform: scale(1.1); }
+  100% { filter: drop-shadow(0 0 0px rgba(255, 255, 255, 0.5)); transform: scale(1); }
+}
+.pulse-success {
+  animation: pulseGreen 0.5s ease-out;
+}
+`;
+document.head.appendChild(style);
+const copyButton = createIconButton(
+	"https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Copy_-_The_Noun_Project.svg/640px-Copy_-_The_Noun_Project.svg.png",
+	"Kopiér URL",
+	(button, img) => {
+		navigator.clipboard.writeText(streamLink).then(() => {
+			img.classList.add("pulse-success");
+			setTimeout(() => {
+				img.classList.remove("pulse-success");
+			}, 500);
+		});
+	}
+);
 		let castWindow = null;
 
-		const castButton = createIconButton(
-			"https://upload.wikimedia.org/wikipedia/commons/2/26/Chromecast_cast_button_icon.svg",
-			"Chromecast",
-			() => {
-				const url = 'https://umfzbxvz.github.io/kbdra/?entryId=' + kbdra + '&flavorId=' + kbdrakey + '&ext=' + kbdraext;
+const castButton = createIconButton(
+	"https://upload.wikimedia.org/wikipedia/commons/2/26/Chromecast_cast_button_icon.svg",
+	"Chromecast",
+	() => {
+		const url = 'https://umfzbxvz.github.io/kbdra/?entryId=' + kbdra + '&flavorId=' + kbdrakey + '&ext=' + kbdraext;
 
-				if (castWindow && !castWindow.closed) {
-					castWindow.location.href = url;
-					castWindow.focus();
-				} else {
-					castWindow = window.open(
-						url,
-						'castPopup',
-						'width=655,height=410,top=100,left=100,toolbar=no,menubar=no,scrollbars=no,resizable=no,status=no'
-					);
-				}
-			}
-		);
+		if (castWindow && !castWindow.closed) {
+			castWindow.location.href = url;
+			castWindow.focus();
+		} else {
+			castWindow = window.open(
+				url,
+				'castPopup',
+				'width=655,height=410,top=100,left=100,toolbar=no,menubar=no,scrollbars=no,resizable=no,status=no'
+			);
 
-		const downloadButton = createIconButton(
-			"https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Download_icon_black.svg/640px-Download_icon_black.svg.png",
-			"Download",
-			() => startDownload(streamLink, programName, startTime)
-		);
+			castWindow.onload = function () {
+				const contentHeight = castWindow.document.body.scrollHeight;
+				const contentWidth = castWindow.document.body.scrollWidth;
 
+				castWindow.resizeTo(contentWidth + 20, contentHeight + 40);
+
+				const style = castWindow.document.createElement('style');
+				style.innerHTML = `
+					html, body {
+						overflow: hidden !important;
+						margin: 0;
+						padding: 0;
+					}
+				`;
+				castWindow.document.head.appendChild(style);
+			};
+		}
+	}
+);
+
+
+const downloadButton = createIconButton(
+	"https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Download_icon_black.svg/640px-Download_icon_black.svg.png",
+	"Download",
+	(button, img) => startDownloadWithProgress(streamLink, programName, startTime, img)
+);
 		buttonWrapper.appendChild(castButton);
-		buttonWrapper.appendChild(playTabButton);
+		buttonWrapper.appendChild(copyButton);
 		buttonWrapper.appendChild(downloadButton);
 
 		metadataContainer.parentNode.insertBefore(buttonWrapper, metadataContainer);
@@ -184,12 +218,98 @@ function addUIButtons(streamLink, programName, description, startTime) {
 	});
 }
 
+function startDownloadWithProgress(downloadUrl, programName, startTime, iconImg) {
+	const originalSrc = iconImg.src;
+
+	updateCircularProgress(iconImg, 0);
+
+	fetch(downloadUrl)
+		.then(response => {
+			if (!response.ok) throw new Error("Fejl ved download");
+
+			const contentLength = response.headers.get('content-length');
+			if (!contentLength) throw new Error("Ingen content-length!");
+
+			const total = parseInt(contentLength, 10);
+			let loaded = 0;
+			const reader = response.body.getReader();
+			const chunks = [];
+
+			function read() {
+				return reader.read().then(({ done, value }) => {
+					if (done) return;
+
+					chunks.push(value);
+					loaded += value.length;
+
+					const percent = Math.floor((loaded / total) * 99); 
+					updateCircularProgress(iconImg, percent);
+
+					return read();
+				});
+			}
+
+			return read().then(() => new Blob(chunks));
+		})
+		.then(blob => {
+			const formattedDate = startTime.split('T')[0];
+			const fileExtension = downloadUrl.substring(downloadUrl.lastIndexOf('.'));
+			const fileName = `${formattedDate} - ${programName}${fileExtension}`;
+
+			const link = document.createElement('a');
+			link.href = URL.createObjectURL(blob);
+			link.download = fileName;
+
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+		})
+		.catch(error => console.error("Fejl under download:", error))
+		.finally(() => {
+			iconImg.src = originalSrc; 
+		});
+}
+
+function updateCircularProgress(imgElement, percent) {
+	const size = 40;
+	const canvas = document.createElement('canvas');
+	canvas.width = size;
+	canvas.height = size;
+	const ctx = canvas.getContext('2d');
+
+	ctx.beginPath();
+	ctx.arc(size / 2, size / 2, size / 2 - 3, 0, 2 * Math.PI);
+	ctx.strokeStyle = '#ddd';
+	ctx.lineWidth = 4;
+	ctx.stroke();
+
+	const startAngle = -Math.PI / 2;
+	const endAngle = startAngle + (percent / 100) * 2 * Math.PI;
+	ctx.beginPath();
+	ctx.arc(size / 2, size / 2, size / 2 - 3, startAngle, endAngle);
+	ctx.strokeStyle = '#002E70'; // KB-blå
+	ctx.lineWidth = 4;
+	ctx.stroke();
+
+	// Tekst i midten
+	ctx.fillStyle = '#000';
+	ctx.font = 'bold 12px sans-serif';
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'middle';
+
+	const displayText = percent.toString().padStart(2, '0');
+	ctx.fillText(displayText, size / 2, size / 2);
+
+	imgElement.src = canvas.toDataURL();
+}
+
 function removeExistingButtons() {
 	document.querySelectorAll('#custom-button-wrapper').forEach(el => el.remove());
 }
 
-function startDownload(downloadUrl, programName, startTime) {
-	console.log("Starter download:", downloadUrl);
+function startDownload(downloadUrl, programName, startTime, iconImg) {
+	const originalSrc = iconImg.src;
+	iconImg.src = 'https://cdnl.iconscout.com/lottie/premium/thumb/loader-5478808-4574104.gif'; 
 
 	fetch(downloadUrl)
 		.then(response => {
@@ -209,8 +329,12 @@ function startDownload(downloadUrl, programName, startTime) {
 			link.click();
 			document.body.removeChild(link);
 		})
-		.catch(error => console.error("Fejl ved download:", error));
+		.catch(error => console.error("Fejl ved download:", error))
+		.finally(() => {
+			iconImg.src = originalSrc;
+		});
 }
+
 
 // Initial execution
 runScript();
