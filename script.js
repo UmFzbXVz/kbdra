@@ -56,6 +56,7 @@ async function fetchKalturaData(entryId) {
       mediaData.title = mediaInfo.name;
       mediaData.description = mediaInfo.description;
       mediaData.posterUrl = "https://vod-cache.kaltura.nordu.net/p/397/sp/39700/thumbnail/entry_id/" + entryId + "/version/100002/height/640/width/640";
+      mediaData.duration = mediaInfo.duration;
       updateMetadata();
 
       console.log(data);
@@ -72,7 +73,7 @@ function generateKalturaLink(entryId, flavorId, ext) {
 function updateMetadata() {
   document.getElementById('title').innerText = mediaData.title || '';
   document.getElementById('description').innerText = mediaData.description || '';
-  document.getElementById('releaseDate').innerText = mediaData.releaseDate ? `${new Date(mediaData.releaseDate).toLocaleDateString()}` : '';
+  document.getElementById('releaseDate').innerText = formatPrettyDate(mediaData.releaseDate);
   const posterElement = document.getElementById('poster');
   if (mediaData.posterUrl) {
     posterElement.src = mediaData.posterUrl;
@@ -172,6 +173,11 @@ function handleStateChange(state) {
   }
 }
 
+const descriptionElement = document.getElementById('description');
+descriptionElement.addEventListener('click', function() {
+  this.classList.toggle('expanded');
+});
+
 // Event-listeners til kontrolknapper
 document.getElementById('cast').addEventListener('click', () => {
   if (cjs.available) {
@@ -232,11 +238,47 @@ document.getElementById('range').addEventListener('input', () => {
   cjs.seek(seekTime);
 });
 
-// Initialisering  https://vod-cache.kaltura.nordu.net/p/397/sp/39700/serveFlavor/entryId/0_x3yhkcpe/v/12/flavorId/0_picuy3wm/name/a.mp4
+function uncastDate(compact) {
+  const year = compact.slice(0, 4);
+  const month = compact.slice(4, 6);
+  const day = compact.slice(6, 8);
+  const hours = compact.slice(8, 10);
+  const minutes = compact.slice(10, 12);
+  
+  releaseDate = `${year}-${month}-${day}T${hours}:${minutes}:00Z`;
+
+  mediaData.releaseDate = releaseDate;
+  return releaseDate;
+}
+
+function formatPrettyDate(isoDateStr) {
+  const date = new Date(isoDateStr);
+
+  const weekdays = [
+    "Søndag", "Mandag", "Tirsdag", "Onsdag",
+    "Torsdag", "Fredag", "Lørdag"
+  ];
+
+  const months = [
+    "januar", "februar", "marts", "april", "maj", "juni",
+    "juli", "august", "september", "oktober", "november", "december"
+  ];
+
+  const dayName = weekdays[date.getUTCDay()];
+  const day = date.getUTCDate();
+  const month = months[date.getUTCMonth()];
+  const year = date.getUTCFullYear();
+
+  return `${dayName} ${day}. ${month} ${year}`;
+}
+
+
+// Initialisering
 document.addEventListener("DOMContentLoaded", () => {
   let entryId = getUrlParameter("entryId");
   let flavorId = getUrlParameter("flavorId");
   let fileExt = getUrlParameter("ext");
+  let releaseDate = uncastDate(getUrlParameter("d"));
   
   fetchKalturaData(entryId);
   mediaData.mediaUrl = generateKalturaLink(entryId, flavorId, fileExt);
