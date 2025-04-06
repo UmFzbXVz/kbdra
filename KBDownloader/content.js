@@ -39,6 +39,18 @@ document.addEventListener('DOMContentLoaded', () => {
 	runScript();
 });
 
+function castDate(date) {
+  const d = new Date(date);
+
+  const year = d.getUTCFullYear();
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  const hours = String(d.getUTCHours()).padStart(2, '0');
+  const minutes = String(d.getUTCMinutes()).padStart(2, '0');
+
+  return `${year}${month}${day}${hours}${minutes}`;
+}
+
 function generateKalturaLink(entryId, programName, description, startTime) {
 	const url = "https://api.kaltura.nordu.net/api_v3/service/multirequest";
 	const headers = {
@@ -167,7 +179,7 @@ const castButton = createIconButton(
 	"https://upload.wikimedia.org/wikipedia/commons/2/26/Chromecast_cast_button_icon.svg",
 	"Chromecast",
 	() => {
-		const url = 'https://umfzbxvz.github.io/kbdra/?entryId=' + kbdra + '&flavorId=' + kbdrakey + '&ext=' + kbdraext;
+		const url = 'https://umfzbxvz.github.io/kbdra/?entryId=' + kbdra + '&flavorId=' + kbdrakey + '&ext=' + kbdraext + '&d=' + castDate(startTime);
 
 		if (castWindow && !castWindow.closed) {
 			castWindow.location.href = url;
@@ -176,7 +188,7 @@ const castButton = createIconButton(
 			castWindow = window.open(
 				url,
 				'castPopup',
-				'width=655,height=410,top=100,left=100,toolbar=no,menubar=no,scrollbars=no,resizable=no,status=no'
+				'width=360,height=590,top=100,left=100,toolbar=no,menubar=no,scrollbars=no,resizable=no,status=no'
 			);
 
 			castWindow.onload = function () {
@@ -334,7 +346,6 @@ function startDownload(downloadUrl, programName, startTime, iconImg) {
 			iconImg.src = originalSrc;
 		});
 }
-
 
 // Initial execution
 runScript();
