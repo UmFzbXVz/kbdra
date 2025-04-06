@@ -188,7 +188,7 @@ const castButton = createIconButton(
 			castWindow = window.open(
 				url,
 				'castPopup',
-				'width=360,height=590,top=100,left=100,toolbar=no,menubar=no,scrollbars=no,resizable=no,status=no'
+				'width=440,height=590,top=100,left=100,toolbar=no,menubar=no,scrollbars=no,resizable=no,status=no'
 			);
 
 			castWindow.onload = function () {
