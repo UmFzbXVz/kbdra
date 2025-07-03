@@ -108,7 +108,7 @@ function generateKalturaLink(entryId, programName, description, startTime) {
 				const fileExt = responseData[2]['flavorAssets'][0]['fileExt'];
 				kbdraext = fileExt;
 
-				const streamLink = `https://vod-cache.kaltura.nordu.net/p/397/sp/39700/serveFlavor/entryId/${entryId}/v/12/flavorId/${flavorId}/name/a.${fileExt}`;
+				const streamLink = `https://vod-cache.kaltura.nordu.net/p/397/sp/39700/serveFlavor/entryId/${entryId}/v/12/flavorId/${flavorId}/name/a.${fileExt}/index.m3u8`;
 
 				console.log("Genereret streamlink:", streamLink);
 				addUIButtons(streamLink, programName, description, startTime);
@@ -231,55 +231,57 @@ const downloadButton = createIconButton(
 }
 
 function startDownloadWithProgress(downloadUrl, programName, startTime, iconImg) {
-	const originalSrc = iconImg.src;
+    const originalSrc = iconImg.src;
 
-	updateCircularProgress(iconImg, 0);
+    updateCircularProgress(iconImg, 0);
 
-	fetch(downloadUrl)
-		.then(response => {
-			if (!response.ok) throw new Error("Fejl ved download");
+    fetch(downloadUrl)
+        .then(response => {
+            if (!response.ok) throw new Error("Fejl ved download");
 
-			const contentLength = response.headers.get('content-length');
-			if (!contentLength) throw new Error("Ingen content-length!");
+            const contentLength = response.headers.get('content-length');
+            if (!contentLength) throw new Error("Ingen content-length!");
 
-			const total = parseInt(contentLength, 10);
-			let loaded = 0;
-			const reader = response.body.getReader();
-			const chunks = [];
+            const total = parseInt(contentLength, 10);
+            let loaded = 0;
+            const reader = response.body.getReader();
+            const chunks = [];
 
-			function read() {
-				return reader.read().then(({ done, value }) => {
-					if (done) return;
+            function read() {
+                return reader.read().then(({ done, value }) => {
+                    if (done) return;
 
-					chunks.push(value);
-					loaded += value.length;
+                    chunks.push(value);
+                    loaded += value.length;
 
-					const percent = Math.floor((loaded / total) * 99); 
-					updateCircularProgress(iconImg, percent);
+                    const percent = Math.floor((loaded / total) * 99);
+                    updateCircularProgress(iconImg, percent);
 
-					return read();
-				});
-			}
+                    return read();
+                });
+            }
 
-			return read().then(() => new Blob(chunks));
-		})
-		.then(blob => {
-			const formattedDate = startTime.split('T')[0];
-			const fileExtension = downloadUrl.substring(downloadUrl.lastIndexOf('.'));
-			const fileName = `${formattedDate} - ${programName}${fileExtension}`;
+            return read().then(() => new Blob(chunks));
+        })
+        .then(blob => {
+            const formattedDate = startTime.split('T')[0];
+            const parts = downloadUrl.split('.');
+            const preExtension = parts[parts.length - 2];
+            const fileExtension = preExtension.split('/')[0]; // F.eks. 'mp3'
+            const fileName = `${formattedDate} - ${programName}.${fileExtension}`;
 
-			const link = document.createElement('a');
-			link.href = URL.createObjectURL(blob);
-			link.download = fileName;
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = fileName;
 
-			document.body.appendChild(link);
-			link.click();
-			document.body.removeChild(link);
-		})
-		.catch(error => console.error("Fejl under download:", error))
-		.finally(() => {
-			iconImg.src = originalSrc; 
-		});
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        })
+        .catch(error => console.error("Fejl under download:", error))
+        .finally(() => {
+            iconImg.src = originalSrc;
+        });
 }
 
 function updateCircularProgress(imgElement, percent) {
@@ -320,31 +322,33 @@ function removeExistingButtons() {
 }
 
 function startDownload(downloadUrl, programName, startTime, iconImg) {
-	const originalSrc = iconImg.src;
-	iconImg.src = 'https://cdnl.iconscout.com/lottie/premium/thumb/loader-5478808-4574104.gif'; 
+    const originalSrc = iconImg.src;
+    iconImg.src = 'https://cdnl.iconscout.com/lottie/premium/thumb/loader-5478808-4574104.gif';
 
-	fetch(downloadUrl)
-		.then(response => {
-			if (!response.ok) throw new Error('Downloadfejl: ' + response.statusText);
-			return response.blob();
-		})
-		.then(blob => {
-			const formattedDate = startTime.split('T')[0];
-			const fileExtension = downloadUrl.substring(downloadUrl.lastIndexOf('.'));
-			const fileName = `${formattedDate} - ${programName}${fileExtension}`;
+    fetch(downloadUrl)
+        .then(response => {
+            if (!response.ok) throw new Error('Downloadfejl: ' + response.statusText);
+            return response.blob();
+        })
+        .then(blob => {
+            const formattedDate = startTime.split('T')[0];
+            const parts = downloadUrl.split('.');
+            const preExtension = parts[parts.length - 2]; 
+            const fileExtension = preExtension.split('/')[0]; // F.eks. 'mp3'
+            const fileName = `${formattedDate} - ${programName}.${fileExtension}`;
 
-			const link = document.createElement('a');
-			link.href = URL.createObjectURL(blob);
-			link.download = fileName;
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = fileName;
 
-			document.body.appendChild(link);
-			link.click();
-			document.body.removeChild(link);
-		})
-		.catch(error => console.error("Fejl ved download:", error))
-		.finally(() => {
-			iconImg.src = originalSrc;
-		});
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        })
+        .catch(error => console.error("Fejl ved download:", error))
+        .finally(() => {
+            iconImg.src = originalSrc;
+        });
 }
 
 // Initial execution
