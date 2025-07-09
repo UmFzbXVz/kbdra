@@ -67,7 +67,7 @@ async function fetchKalturaData(entryId) {
 }
 
 function generateKalturaLink(entryId, flavorId, ext) {
-  return `https://vod-cache.kaltura.nordu.net/p/397/sp/39700/serveFlavor/entryId/${entryId}/v/12/flavorId/${flavorId}/name/a.${ext}/index.m3u8`;
+  return `https://api.kltr.nordu.net/p/397/sp/39700/serveFlavor/entryId/${entryId}/flavorId/${flavorId}/name/a.${fileExt}`;
 }
 
 function updateMetadata() {
