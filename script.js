@@ -15,29 +15,39 @@ const mediaData = {
 
 async function fetchKalturaData(entryId) {
   const requestBody = {
-    "1": {
-      "service": "session",
-      "action": "startWidgetSession",
-      "widgetId": "_397"
-    },
-    "2": {
-      "service": "baseEntry",
-      "action": "list",
-      "ks": "{1:result:ks}",
-      "filter": {
-        "redirectFromEntryId": entryId
-      },
-      "responseProfile": {
-        "type": 1,
-        "fields": "id,referenceId,name,duration,description,thumbnailUrl,dataUrl,duration,msDuration,flavorParamsIds,mediaType,type,tags,startTime,date,dvrStatus,externalSourceType,status"
-      }
-    },
-    "apiVersion": "3.3.0",
-    "format": 1,
-    "ks": "",
-    "clientTag": "html5:v3.14.4",
-    "partnerId": 397
-  };
+		"1": {
+			"service": "session",
+			"action": "startWidgetSession",
+			"widgetId": "_397"
+		},
+		"2": {
+			"service": "baseEntry",
+			"action": "list",
+			"ks": "{1:result:ks}",
+			"filter": {
+				"redirectFromEntryId": entryId
+			},
+			"responseProfile": {
+				"type": 1,
+				"fields": "id"
+			}
+		},
+		"3": {
+			"service": "baseEntry",
+			"action": "getPlaybackContext",
+			"entryId": "{2:result:objects:0:id}",
+			"ks": "{1:result:ks}",
+			"contextDataParams": {
+				"objectType": "KalturaContextDataParams",
+				"flavorTags": "all"
+			}
+		},
+		"apiVersion": "3.3.0",
+		"format": 1,
+		"ks": "",
+		"clientTag": "html5:v3.14.4",
+		"partnerId": 397
+	};
 
   try {
     const response = await fetch("https://api.kaltura.nordu.net/api_v3/service/multirequest", {
