@@ -108,7 +108,7 @@ function generateKalturaLink(entryId, programName, description, startTime) {
 				const fileExt = responseData[2]['flavorAssets'][0]['fileExt'];
 				kbdraext = fileExt;
 
-				const streamLink = `https://vod-cache.kaltura.nordu.net/p/397/sp/39700/serveFlavor/entryId/${entryId}/v/12/flavorId/${flavorId}/name/a.${fileExt}/index.m3u8`;
+				const streamLink = `https://api.kltr.nordu.net/p/397/sp/39700/serveFlavor/entryId/${entryId}/flavorId/${flavorId}/name/a.${fileExt}`;
 
 				console.log("Genereret streamlink:", streamLink);
 				addUIButtons(streamLink, programName, description, startTime);
@@ -175,7 +175,7 @@ const copyButton = createIconButton(
 );
 		let castWindow = null;
 
-const castButton = createIconButton(
+/*const castButton = createIconButton(
 	"https://upload.wikimedia.org/wikipedia/commons/2/26/Chromecast_cast_button_icon.svg",
 	"Chromecast",
 	() => {
@@ -209,7 +209,7 @@ const castButton = createIconButton(
 			};
 		}
 	}
-);
+);*/
 
 
 const downloadButton = createIconButton(
@@ -217,7 +217,7 @@ const downloadButton = createIconButton(
 	"Download",
 	(button, img) => startDownloadWithProgress(streamLink, programName, startTime, img)
 );
-		buttonWrapper.appendChild(castButton);
+		//buttonWrapper.appendChild(castButton);
 		buttonWrapper.appendChild(copyButton);
 		buttonWrapper.appendChild(downloadButton);
 
@@ -265,8 +265,10 @@ function startDownloadWithProgress(downloadUrl, programName, startTime, iconImg)
         })
         .then(blob => {
             const formattedDate = startTime.split('T')[0];
+            // Split downloadUrl på '.' og tag næstsidste del
             const parts = downloadUrl.split('.');
-            const preExtension = parts[parts.length - 2];
+            const preExtension = parts[parts.length - 2]; // F.eks. 'mp3/index'
+            // Split preExtension på '/' for at få den rene filtype
             const fileExtension = preExtension.split('/')[0]; // F.eks. 'mp3'
             const fileName = `${formattedDate} - ${programName}.${fileExtension}`;
 
@@ -332,8 +334,10 @@ function startDownload(downloadUrl, programName, startTime, iconImg) {
         })
         .then(blob => {
             const formattedDate = startTime.split('T')[0];
+            // Split downloadUrl på '.' og tag næstsidste del
             const parts = downloadUrl.split('.');
-            const preExtension = parts[parts.length - 2]; 
+            const preExtension = parts[parts.length - 2]; // F.eks. 'mp3/index'
+            // Split preExtension på '/' for at få den rene filtype
             const fileExtension = preExtension.split('/')[0]; // F.eks. 'mp3'
             const fileName = `${formattedDate} - ${programName}.${fileExtension}`;
 
