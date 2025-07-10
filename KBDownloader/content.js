@@ -4,6 +4,7 @@ function runScript() {
 	let kbdra = '';
 	let kbdrakey = '';
 	let kbdraext = '';
+	let streamLink = ""
 
 	if (currentUrl.startsWith(prefix)) {
 		const identifier = currentUrl.slice(prefix.length);
@@ -108,7 +109,7 @@ function generateKalturaLink(entryId, programName, description, startTime) {
 				const fileExt = responseData[2]['flavorAssets'][0]['fileExt'];
 				kbdraext = fileExt;
 
-				const streamLink = `https://api.kltr.nordu.net/p/397/sp/39700/serveFlavor/entryId/${entryId}/flavorId/${flavorId}/name/a.${fileExt}`;
+				streamLink = `https://api.kltr.nordu.net/p/397/sp/39700/serveFlavor/entryId/${entryId}/flavorId/${flavorId}/name/a.${fileExt}`;
 
 				console.log("Genereret streamlink:", streamLink);
 				addUIButtons(streamLink, programName, description, startTime);
@@ -175,7 +176,7 @@ const copyButton = createIconButton(
 );
 		let castWindow = null;
 
-/*const castButton = createIconButton(
+const castButton = createIconButton(
 	"https://upload.wikimedia.org/wikipedia/commons/2/26/Chromecast_cast_button_icon.svg",
 	"Chromecast",
 	() => {
@@ -209,7 +210,7 @@ const copyButton = createIconButton(
 			};
 		}
 	}
-);*/
+);
 
 
 const downloadButton = createIconButton(
@@ -217,7 +218,7 @@ const downloadButton = createIconButton(
 	"Download",
 	(button, img) => startDownloadWithProgress(streamLink, programName, startTime, img)
 );
-		//buttonWrapper.appendChild(castButton);
+		buttonWrapper.appendChild(castButton);
 		buttonWrapper.appendChild(copyButton);
 		buttonWrapper.appendChild(downloadButton);
 
@@ -263,16 +264,13 @@ function startDownloadWithProgress(downloadUrl, programName, startTime, iconImg)
 
             return read().then(() => new Blob(chunks));
         })
-        .then(blob => {
-            const formattedDate = startTime.split('T')[0];
-            // Split downloadUrl på '.' og tag næstsidste del
-            const parts = downloadUrl.split('.');
-            const preExtension = parts[parts.length - 2]; // F.eks. 'mp3/index'
-            // Split preExtension på '/' for at få den rene filtype
-            const fileExtension = preExtension.split('/')[0]; // F.eks. 'mp3'
-            const fileName = `${formattedDate} - ${programName}.${fileExtension}`;
+       .then(blob => {
+    const formattedDate = startTime.split('T')[0];
+    const fileExtension = downloadUrl.split('.').pop(); 
+    const fileName = `${formattedDate} - ${programName}.${fileExtension}`;
 
             const link = document.createElement('a');
+            console.log("Downloading link:", link);
             link.href = URL.createObjectURL(blob);
             link.download = fileName;
 
@@ -321,38 +319,6 @@ function updateCircularProgress(imgElement, percent) {
 
 function removeExistingButtons() {
 	document.querySelectorAll('#custom-button-wrapper').forEach(el => el.remove());
-}
-
-function startDownload(downloadUrl, programName, startTime, iconImg) {
-    const originalSrc = iconImg.src;
-    iconImg.src = 'https://cdnl.iconscout.com/lottie/premium/thumb/loader-5478808-4574104.gif';
-
-    fetch(downloadUrl)
-        .then(response => {
-            if (!response.ok) throw new Error('Downloadfejl: ' + response.statusText);
-            return response.blob();
-        })
-        .then(blob => {
-            const formattedDate = startTime.split('T')[0];
-            // Split downloadUrl på '.' og tag næstsidste del
-            const parts = downloadUrl.split('.');
-            const preExtension = parts[parts.length - 2]; // F.eks. 'mp3/index'
-            // Split preExtension på '/' for at få den rene filtype
-            const fileExtension = preExtension.split('/')[0]; // F.eks. 'mp3'
-            const fileName = `${formattedDate} - ${programName}.${fileExtension}`;
-
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = fileName;
-
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        })
-        .catch(error => console.error("Fejl ved download:", error))
-        .finally(() => {
-            iconImg.src = originalSrc;
-        });
 }
 
 // Initial execution
